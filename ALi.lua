@@ -2,18 +2,55 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local player = Players.LocalPlayer
 
--- 1. بناء القائمة بنفس شكل الصورة والمقطع
-local screenGui = Instance.new("ScreenGui")
-screenGui.Name = "RTX_VIP_Final"
-screenGui.Parent = player:WaitForChild("PlayerGui")
+-- 1. إنشاء الزر الدائري (ابو قحط) في الزاوية العلوية
+local mainGui = Instance.new("ScreenGui")
+mainGui.Name = "AbuQaht_System_V2"
+mainGui.Parent = player:WaitForChild("PlayerGui")
+mainGui.ResetOnSpawn = false 
 
+local toggleBtn = Instance.new("TextButton")
+toggleBtn.Name = "AbuQahtBtn"
+toggleBtn.Size = UDim2.new(0, 70, 0, 70) 
+toggleBtn.Position = UDim2.new(0.02, 0, 0.02, 0) -- الزاوية العلوية اليسرى
+toggleBtn.BackgroundColor3 = Color3.fromRGB(0, 0, 0) -- خلفية سوداء
+toggleBtn.Text = "ابو قحط"
+toggleBtn.Font = Enum.Font.GothamBold
+toggleBtn.TextSize = 14
+toggleBtn.Parent = mainGui
+
+-- جعل الزر دائرياً
+local btnCorner = Instance.new("UICorner")
+btnCorner.CornerRadius = UDim.new(1, 0)
+btnCorner.Parent = toggleBtn
+
+-- جعل كلمة "ابو قحط" ملونة (قوس قزح متحرك)
+local textGradient = Instance.new("UIGradient")
+textGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
+    ColorSequenceKeypoint.new(0.2, Color3.fromRGB(255, 255, 0)),
+    ColorSequenceKeypoint.new(0.4, Color3.fromRGB(0, 255, 0)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(0.8, Color3.fromRGB(0, 0, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 255))
+}
+textGradient.Parent = toggleBtn
+
+-- سكربت تحريك الألوان (اختياري لجعل الاسم يلمع)
+task.spawn(function()
+    while task.wait() do
+        textGradient.Rotation = textGradient.Rotation + 2
+    end
+end)
+
+-- 2. القائمة الرئيسية (RTX HUB)
 local mainFrame = Instance.new("Frame")
 mainFrame.Size = UDim2.new(0, 320, 0, 180)
 mainFrame.Position = UDim2.new(0.5, -160, 0.4, -90)
 mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+mainFrame.Visible = false 
 mainFrame.Active = true
-mainFrame.Draggable = true -- للتحريك على الايباد
-mainFrame.Parent = screenGui
+mainFrame.Draggable = true 
+mainFrame.Parent = mainGui
 Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
 
 local title = Instance.new("TextLabel")
@@ -24,113 +61,67 @@ title.Font = Enum.Font.GothamBold
 title.BackgroundTransparency = 1
 title.Parent = mainFrame
 
--- زر فتح VIP
-local openBtn = Instance.new("TextButton")
-openBtn.Size = UDim2.new(0, 280, 0, 55)
-openBtn.Position = UDim2.new(0.5, -140, 0.25, 0)
-openBtn.BackgroundColor3 = Color3.fromRGB(70, 60, 140)
-openBtn.Text = "🔓 فتح VIP"
-openBtn.TextColor3 = Color3.new(1, 1, 1)
-openBtn.Font = Enum.Font.GothamBold
-openBtn.Parent = mainFrame
-Instance.new("UICorner", openBtn)
+-- الأزرار الداخلية (نفس الحركة الثابتة)
+local function createBtn(name, pos, color)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, (name == "🔓 فتح VIP" and 280 or 135), 0, 50)
+    b.Position = pos
+    b.BackgroundColor3 = color
+    b.Text = name
+    b.TextColor3 = Color3.new(1, 1, 1)
+    b.Font = Enum.Font.GothamBold
+    b.Parent = mainFrame
+    Instance.new("UICorner", b)
+    return b
+end
 
--- زر تقدم تلقائي (الأخضر)
-local forwardBtn = Instance.new("TextButton")
-forwardBtn.Size = UDim2.new(0, 135, 0, 50)
-forwardBtn.Position = UDim2.new(0.06, 0, 0.62, 0)
-forwardBtn.BackgroundColor3 = Color3.fromRGB(75, 150, 75)
-forwardBtn.Text = "▶️ تقدم تلقائي"
-forwardBtn.TextColor3 = Color3.new(1, 1, 1)
-forwardBtn.Font = Enum.Font.GothamBold
-forwardBtn.Parent = mainFrame
-Instance.new("UICorner", forwardBtn)
+local openBtn = createBtn("🔓 فتح VIP", UDim2.new(0.5, -140, 0.25, 0), Color3.fromRGB(70, 60, 140))
+local forwardBtn = createBtn("▶️ تقدم تلقائي", UDim2.new(0.06, 0, 0.62, 0), Color3.fromRGB(75, 150, 75))
+local backwardBtn = createBtn("◀️ رجوع تلقائي", UDim2.new(0.51, 0, 0.62, 0), Color3.fromRGB(160, 50, 50))
 
--- زر رجوع تلقائي (الأحمر)
-local backwardBtn = Instance.new("TextButton")
-backwardBtn.Size = UDim2.new(0, 135, 0, 50)
-backwardBtn.Position = UDim2.new(0.51, 0, 0.62, 0)
-backwardBtn.BackgroundColor3 = Color3.fromRGB(160, 50, 50)
-backwardBtn.Text = "◀️ رجوع تلقائي"
-backwardBtn.TextColor3 = Color3.new(1, 1, 1)
-backwardBtn.Font = Enum.Font.GothamBold
-backwardBtn.Parent = mainFrame
-Instance.new("UICorner", backwardBtn)
+-- 3. البرمجة والتحكم
+toggleBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = not mainFrame.Visible
+end)
 
--- 2. الوظائف البرمجية الذكية (توجيه 360 درجة)
-local function findGateByDirection(isForward)
-    local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return nil end
+local function startFly(target)
+    if not target then return end
+    local root = player.Character.HumanoidRootPart
+    target.CanCollide = false
+    
+    local bg = Instance.new("BodyGyro", root)
+    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+    bg.CFrame = root.CFrame
+    
+    local bv = Instance.new("BodyVelocity", root)
+    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bv.Velocity = Vector3.new(0,0,0)
+    
+    local dist = (target.Position - root.Position).Magnitude
+    local tween = TweenService:Create(root, TweenInfo.new(dist/100, Enum.EasingStyle.Linear), {CFrame = CFrame.new(target.Position, target.Position + root.CFrame.LookVector)})
+    tween:Play()
+    tween.Completed:Connect(function() bg:Destroy() bv:Destroy() end)
+end
 
-    local bestGate = nil
-    local minDistance = math.huge
-
-    for _, obj in pairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and (obj.Name:find("VIP") or obj.Name:find("Gate")) then
-            local dirToGate = (obj.Position - root.Position).Unit
-            local lookDir = root.CFrame.LookVector
-            local dotProduct = lookDir:Dot(dirToGate)
-
-            -- التقدم يبحث عن dot > 0 (أمامك)، الرجوع يبحث عن dot < 0 (خلفك)
-            local isValidDirection = isForward and (dotProduct > 0.3) or (not isForward and dotProduct < -0.3)
-
-            if isValidDirection then
-                local dist = (obj.Position - root.Position).Magnitude
-                if dist < minDistance then
-                    minDistance = dist
-                    bestGate = obj
-                end
+local function getGate(isFwd)
+    local root = player.Character.HumanoidRootPart
+    local best, minDist = nil, math.huge
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") and (v.Name:find("VIP") or v.Name:find("Gate")) then
+            local dot = root.CFrame.LookVector:Dot((v.Position - root.Position).Unit)
+            if (isFwd and dot > 0.3) or (not isFwd and dot < -0.3) then
+                local d = (v.Position - root.Position).Magnitude
+                if d < minDist then minDist = d; best = v end
             end
         end
     end
-    return bestGate
+    return best
 end
 
-local function startSmartFly(targetGate)
-    local char = player.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root or not targetGate then return end
-
-    targetGate.CanCollide = false -- فتح الحاجز
-
-    -- تثبيت حديدي (صنم)
-    local bg = Instance.new("BodyGyro")
-    bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
-    bg.P = 50000
-    bg.CFrame = root.CFrame
-    bg.Parent = root
-
-    local bv = Instance.new("BodyVelocity")
-    bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-    bv.Velocity = Vector3.new(0,0,0)
-    bv.Parent = root
-
-    -- حركة Tween بسرعة 100
-    local dist = (targetGate.Position - root.Position).Magnitude
-    local tInfo = TweenInfo.new(dist/100, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(root, tInfo, {CFrame = CFrame.new(targetGate.Position, targetGate.Position + root.CFrame.LookVector)})
-    
-    tween:Play()
-    tween.Completed:Connect(function()
-        bg:Destroy()
-        bv:Destroy()
-    end)
-end
-
--- ربط الأزرار
+forwardBtn.MouseButton1Click:Connect(function() startFly(getGate(true)) end)
+backwardBtn.MouseButton1Click:Connect(function() startFly(getGate(false)) end)
 openBtn.MouseButton1Click:Connect(function()
     for _, v in pairs(workspace:GetDescendants()) do
         if v:IsA("BasePart") and v.Name:find("VIP") then v.CanCollide = false v.Transparency = 0.5 end
     end
-end)
-
-forwardBtn.MouseButton1Click:Connect(function()
-    local gate = findGateByDirection(true)
-    if gate then startSmartFly(gate) end
-end)
-
-backwardBtn.MouseButton1Click:Connect(function()
-    local gate = findGateByDirection(false)
-    if gate then startSmartFly(gate) end
 end)
